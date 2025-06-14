@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  biblioteca-java:
+    build: .
+    container_name: biblioteca-container
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    stdin_open: true
+    tty: true

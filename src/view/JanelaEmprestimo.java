@@ -1,9 +1,9 @@
+package view;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 
 public class JanelaEmprestimo extends JFrame {
 
@@ -13,18 +13,15 @@ public class JanelaEmprestimo extends JFrame {
     private JButton renovarBtn;
     private JButton cancelarBtn;
 
-
     private LocalDateTime agora = LocalDateTime.now();
     private LocalDateTime renovadoLimite = agora.plusDays(10);
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss  dd/MM/yyyy");
 
-    private String emprestado = agora.format(formatter);
-    private String renovado = renovadoLimite.format(formatter);
-
     private String nomeAlunoAtual = "";
-    private String nomeLivroAtual = "";
     private String entrada;
+
+    private final ArrayList<String> livrosEmprestados = new ArrayList<>();
 
     public JanelaEmprestimo(String usuario) {
         setTitle("Solicitar Empréstimo");
@@ -55,7 +52,7 @@ public class JanelaEmprestimo extends JFrame {
         add(statusLabel);
 
         statusAlunoLabel = new JLabel("Status do Aluno: ---");
-        statusAlunoLabel.setBounds(30, 170, 500, 100); // altura ajustada
+        statusAlunoLabel.setBounds(30, 170, 500, 150);
         statusAlunoLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         add(statusAlunoLabel);
 
@@ -87,22 +84,27 @@ public class JanelaEmprestimo extends JFrame {
             boolean formatoValido = entrada.matches("^.+,\\s.+\\.\\d{5}$");
 
             if (formatoValido) {
-                nomeAlunoAtual = usuario;
-                nomeLivroAtual = entrada;
+                String livro = entrada;
 
+                if (livrosEmprestados.size() >= 5) {
+                    statusLabel.setText("Status: Limite de 5 empréstimos atingido.");
+                    return;
+                }
+
+                if (livrosEmprestados.contains(livro)) {
+                    statusLabel.setText("Status: Este livro já foi emprestado pelo aluno.");
+                    return;
+                }
+
+                nomeAlunoAtual = usuario;
 
                 agora = LocalDateTime.now();
-                emprestado = agora.format(formatter);
+                String emprestado = agora.format(formatter);
                 renovadoLimite = agora.plusDays(10);
-                renovado = renovadoLimite.format(formatter);
+                String renovado = renovadoLimite.format(formatter);
 
-                statusAlunoLabel.setText(
-                        "<html><b>Status do Aluno:</b><br>" +
-                        "Aluno: " + nomeAlunoAtual + "<br>" +
-                        "Livro: " + nomeLivroAtual + "<br>" +
-                        "Empréstimo realizado: " + emprestado + "<br>" +
-                        "Empréstimo limite: " + renovado +
-                        "</html>");
+                livrosEmprestados.add(livro);
+                atualizarStatusAluno(emprestado, renovado);
 
                 renovarBtn.setVisible(true);
                 cancelarBtn.setVisible(true);
@@ -115,25 +117,69 @@ public class JanelaEmprestimo extends JFrame {
 
         renovarBtn.addActionListener(e -> {
             renovadoLimite = renovadoLimite.plusDays(10);
-            renovado = renovadoLimite.format(formatter);
+            String renovado = renovadoLimite.format(formatter);
+            String emprestado = agora.format(formatter);
 
-            statusAlunoLabel.setText(
-                    "<html><b>Status do Aluno:</b><br>" +
-                    "Aluno: " + nomeAlunoAtual + "<br>" +
-                    "Livro: " + nomeLivroAtual + "<br>" +
-                    "Empréstimo realizado: " + emprestado + "<br>" +
-                    "Empréstimo limite: " + renovado +
-                    "</html>");
-
+            atualizarStatusAluno(emprestado, renovado);
             JOptionPane.showMessageDialog(null, "Empréstimo renovado com sucesso.");
         });
 
         cancelarBtn.addActionListener(e -> {
-            statusAlunoLabel.setText("<html><b>Status do Aluno:</b><br>Empréstimo cancelado.</html>");
-            renovarBtn.setVisible(false);
-            cancelarBtn.setVisible(false);
+            if (livrosEmprestados.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nenhum empréstimo para cancelar.");
+                return;
+            }
+
+            String[] opcoes = new String[livrosEmprestados.size() + 1];
+            for (int i = 0; i < livrosEmprestados.size(); i++) {
+                opcoes[i] = livrosEmprestados.get(i);
+            }
+            opcoes[livrosEmprestados.size()] = "Cancelar todos";
+
+            String escolha = (String) JOptionPane.showInputDialog(
+                    null,
+                    "Selecione o livro para cancelar:",
+                    "Cancelar Empréstimo",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    opcoes,
+                    opcoes[0]
+            );
+
+            if (escolha != null) {
+                if (escolha.equals("Cancelar todos")) {
+                    livrosEmprestados.clear();
+                    statusAlunoLabel.setText("<html><b>Status do Aluno:</b><br>Todos os empréstimos foram cancelados.</html>");
+                    renovarBtn.setVisible(false);
+                    cancelarBtn.setVisible(false);
+                } else {
+                    livrosEmprestados.remove(escolha);
+                    if (livrosEmprestados.isEmpty()) {
+                        statusAlunoLabel.setText("<html><b>Status do Aluno:</b><br>Todos os empréstimos foram cancelados.</html>");
+                        renovarBtn.setVisible(false);
+                        cancelarBtn.setVisible(false);
+                    } else {
+                        String emprestado = agora.format(formatter);
+                        String renovado = renovadoLimite.format(formatter);
+                        atualizarStatusAluno(emprestado, renovado);
+                    }
+                }
+            }
         });
 
         setVisible(true);
+    }
+
+    private void atualizarStatusAluno(String emprestado, String renovado) {
+        StringBuilder builder = new StringBuilder("<html><b>Status do Aluno:</b><br>");
+        builder.append("Aluno: ").append(nomeAlunoAtual).append("<br>");
+        builder.append("Livros emprestados:<br>");
+        for (String livro : livrosEmprestados) {
+            builder.append("- ").append(livro).append("<br>");
+        }
+        builder.append("Empréstimo realizado: ").append(emprestado).append("<br>");
+        builder.append("Empréstimo limite: ").append(renovado).append("</html>");
+
+        statusAlunoLabel.setText(builder.toString());
     }
 }
