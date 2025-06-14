@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 public class JanelaBiblioteca extends JFrame {
 
+    // sem modificações
     private JLabel entraBiblioteca;
     private JLabel entraUsuario;
     private JTextField campoUsuario;
