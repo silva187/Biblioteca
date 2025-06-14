@@ -182,8 +182,4 @@ public class JanelaEmprestimo extends JFrame {
 
         statusAlunoLabel.setText(builder.toString());
     }
-<<<<<<< HEAD:src/view/JanelaEmprestimo.java
 }
-=======
-}
->>>>>>> aa7e377b50c2ad0a597df608f529eaf52c54dd2a:src/JanelaEmprestimo.java
