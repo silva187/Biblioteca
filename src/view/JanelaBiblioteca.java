@@ -1,5 +1,9 @@
 package view;
+
 import javax.swing.*;
+
+import service.UsuarioService;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +30,7 @@ public class JanelaBiblioteca extends JFrame {
 
         entraBiblioteca = new JLabel("ALUNO");
         entraBiblioteca.setBounds(200, 20, 200, 30);
-        entraBiblioteca.setFont(new Font("Fonte Serif",Font.BOLD,20));
+        entraBiblioteca.setFont(new Font("Fonte Serif", Font.BOLD, 20));
         add(entraBiblioteca);
 
         entraUsuario = new JLabel("Login:");
@@ -49,10 +53,9 @@ public class JanelaBiblioteca extends JFrame {
         add(jbutton);
 
         jbutton.setBounds(150, 200, 150, 40);
-        jbutton.setFont(new Font("Arial",Font.BOLD,18));
+        jbutton.setFont(new Font("Arial", Font.BOLD, 18));
         jbutton.setForeground(new Color(0, 0, 0));
         jbutton.setBackground(new Color(21, 124, 124));
-
 
         jbutton.addActionListener(new ActionListener() {
             @Override
@@ -60,20 +63,20 @@ public class JanelaBiblioteca extends JFrame {
                 usuario = campoUsuario.getText();
                 senha = new String(campoSenha.getPassword());
 
-                // Verificação do login e senha;
-                boolean loginValido = usuario.matches("^[a-z]+\\.[a-z]+\\d{3}$");
-                boolean senhaValida = senha.matches("^\\d{4}$");
+                UsuarioService usuarioService = new UsuarioService();
+                boolean autenticado = usuarioService.autenticar(usuario, senha);
 
-                if (loginValido && senhaValida) {
-                    System.out.printf("Usuário: %s\nSenha: %s\n", usuario, senha);
-                    new JanelaEmprestimo(usuario);
-
+                if (autenticado) {
+                    JOptionPane.showMessageDialog(null, "Login realizado com sucesso!");
+                    new JanelaEmprestimo(usuario); // ou abra a janela que quiser
+                    //dispose(); // fecha a janela de login
                 } else {
                     JOptionPane.showMessageDialog(null,
-                            "Login ou senha inválidos!\nLogin: nome.sobrenome123\nSenha: 4 números.",
+                            "Login ou senha incorretos!",
                             "Erro de autenticação",
                             JOptionPane.ERROR_MESSAGE);
                 }
+
             }
         });
 

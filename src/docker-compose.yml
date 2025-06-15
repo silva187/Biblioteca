@@ -1,12 +1,36 @@
-version: "3"
-
 services:
-  biblioteca-java:
-    build: .
-    container_name: biblioteca-container
+  postgres:
+    image: postgres:15
+    container_name: biblioteca-postgres
     environment:
-      - DISPLAY=${DISPLAY}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: biblioteca
+    ports:
+      - "5432:5432"
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    stdin_open: true
-    tty: true
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - biblioteca-network  # Ajustando para o nome correto da rede
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: biblioteca-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - biblioteca-network  # Ajustando para o nome correto da rede
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  biblioteca-network:  # Ajustando para o nome correto da rede
+    driver: bridge
