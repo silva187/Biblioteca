@@ -34,7 +34,6 @@ public class Biblioteca {
                         "\nData: " + e.getDataLimite().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             }
         }
-
         return mensagens;
     }
 
@@ -64,19 +63,5 @@ public class Biblioteca {
 
     public List<Aluno> getListaAlunos() {
         return listaAlunos;
-    }
-
-    public Livro buscarLivroPorCodigo(String codigo) {
-        return listaLivros.stream()
-                .filter(livro -> livro.getCodigo().equals(codigo))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public Aluno buscarAlunoPorMatricula(String matricula) {
-        return listaAlunos.stream()
-                .filter(aluno -> aluno.getMatricula().equals(matricula))
-                .findFirst()
-                .orElse(null);
     }
 }

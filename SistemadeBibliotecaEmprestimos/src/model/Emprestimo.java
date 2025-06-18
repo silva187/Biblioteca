@@ -94,11 +94,4 @@ public class Emprestimo {
     public int getRenovacoes() {
         return renovacoes;
     }
-
-    @Override
-    public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        return livro.getTitulo() + " - até " + dataLimite.format(formatter)
-                + " | Dias restantes: " + ChronoUnit.DAYS.between(LocalDateTime.now(), dataLimite);
-    }
 }

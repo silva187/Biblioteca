@@ -14,11 +14,6 @@ public class Livro {
         this.codigo = codigo;
         this.disponivel = disponivel;
     }
-    public boolean isValido() {
-        return titulo != null && !titulo.trim().isEmpty() &&
-                autor != null && !autor.trim().isEmpty() &&
-                codigo != null && !codigo.trim().isEmpty();
-    }
 
     public static Livro buscarLivroNoCatalogo(String entrada) {
         try {
@@ -40,11 +35,6 @@ public class Livro {
         }
     }
 
-
-    public void marcarComoEmprestado() {
-        this.disponivel = false;
-    }
-
     public void marcarComoDisponivel() {
         this.disponivel = true;
     }
@@ -64,6 +54,4 @@ public class Livro {
     public String getCodigo() {
         return codigo;
     }
-
-
 }
