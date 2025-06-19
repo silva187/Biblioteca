@@ -3,8 +3,8 @@ package model;
 import service.EmprestimoService;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 public class Emprestimo {
     private Livro livro;
@@ -24,7 +24,7 @@ public class Emprestimo {
         this.livro = livro;
         this.aluno = aluno;
         this.dataEmprestimo = dataEmprestimo;
-        this.dataLimite = dataLimite;
+        this.dataLimite = dataEmprestimo;
         this.renovacoes = renovacoes;
     }
 
@@ -73,6 +73,17 @@ public class Emprestimo {
     public void renovar() {
         this.dataLimite = this.dataLimite.plusDays(10);
         this.renovacoes++;
+    }
+
+    public static List<Emprestimo> carregarEmprestimosDoAluno(Aluno aluno) {
+        EmprestimoService service = new EmprestimoService();
+        List<Emprestimo> emprestimos = service.buscarEmprestimosDoAluno(aluno.getMatricula());
+
+        for (Emprestimo emp : emprestimos) {
+            aluno.adicionarEmprestimo(emp);
+        }
+
+        return emprestimos;
     }
 
     public Livro getLivro() {
