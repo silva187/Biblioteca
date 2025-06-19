@@ -90,6 +90,51 @@ public class EmprestimoService {
 
         return emprestimos;
     }
+    public List<Emprestimo> buscarEmprestimosDoAluno(String matricula) {
+        List<Emprestimo> emprestimos = new ArrayList<>();
+
+        String sql = "SELECT e.data_emprestimo, e.hora_emprestimo, e.data_limite, e.renovacoes, " +
+                "l.codigo, l.titulo, l.autor, l.disponivel, a.nome, a.matricula " +
+                "FROM emprestimo e " +
+                "JOIN livro l ON e.livro_id = l.id " +
+                "JOIN aluno a ON e.aluno_id = a.id " +
+                "WHERE a.matricula = ?";
+
+        try (Connection conn = Conexao.conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, matricula);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Livro livro = new Livro(
+                        rs.getString("titulo"),
+                        rs.getString("autor"),
+                        rs.getString("codigo"),
+                        rs.getBoolean("disponivel")
+                );
+
+                Aluno aluno = new Aluno(
+                        rs.getString("nome"),
+                        rs.getString("matricula")
+                );
+
+                LocalDateTime dataEmprestimo = rs.getDate("data_emprestimo").toLocalDate()
+                        .atTime(rs.getTime("hora_emprestimo").toLocalTime());
+                LocalDateTime dataLimite = rs.getDate("data_limite").toLocalDate().atStartOfDay();
+                int renovacoes = rs.getInt("renovacoes");
+
+                Emprestimo emprestimo = new Emprestimo(livro, aluno, dataEmprestimo, dataLimite, renovacoes);
+                emprestimos.add(emprestimo);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao buscar empréstimos do aluno: " + e.getMessage());
+        }
+
+        return emprestimos;
+    }
+
 
     public boolean renovarEmprestimo(Emprestimo emprestimo) {
         String sql = "UPDATE emprestimo SET data_limite = ?, renovacoes = ? WHERE aluno_id = ? AND livro_id = ?";
