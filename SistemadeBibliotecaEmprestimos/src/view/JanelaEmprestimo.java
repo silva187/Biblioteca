@@ -23,6 +23,7 @@ public class JanelaEmprestimo extends JFrame {
     private JLabel labelLivro;
     private JButton verificarBtn;
     private JButton solicitarBtn;
+    private JButton verStatusBtn;
     private boolean livroDisponivel = false;
 
     private LocalDateTime agora = LocalDateTime.now();
@@ -38,7 +39,7 @@ public class JanelaEmprestimo extends JFrame {
 
     public JanelaEmprestimo(String usuario) {
         setTitle("Solicitar Empréstimo");
-        setSize(750, 550);
+        setSize(670, 550);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
@@ -55,17 +56,22 @@ public class JanelaEmprestimo extends JFrame {
         add(campoLivro);
 
         verificarBtn = new JButton("Verificar");
-        verificarBtn.setBounds(150, 80, 100, 30);
+        verificarBtn.setBounds(70, 80, 100, 30);
         verificarBtn.setForeground(new Color(0, 0, 0));
         add(verificarBtn);
 
         solicitarBtn = new JButton("Solicitar Empréstimo");
-        solicitarBtn.setBounds(270, 80, 180, 30);
+        solicitarBtn.setBounds(190, 80, 180, 30);
         solicitarBtn.setForeground(new Color(0, 0, 0));
         add(solicitarBtn);
 
+        verStatusBtn = new JButton("Ver Status");
+        verStatusBtn.setBounds(390, 80, 120, 30);
+        verStatusBtn.setForeground(new Color(0, 0, 0));
+        add(verStatusBtn);
+
         statusLabel = new JLabel("Status: Aguardando...");
-        statusLabel.setBounds(30, 130, 450, 30);
+        statusLabel.setBounds(30, 130, 600, 30);
         statusLabel.setForeground(new Color(0, 0, 0));
         statusLabel.setFont(new Font("Arial", Font.BOLD, 15));
         add(statusLabel);
@@ -76,7 +82,7 @@ public class JanelaEmprestimo extends JFrame {
         statusAlunoLabel.setVerticalAlignment(SwingConstants.TOP);
 
         scrollPane = new JScrollPane(statusAlunoLabel);
-        scrollPane.setBounds(30, 160, 500, 170);
+        scrollPane.setBounds(50, 160, 500, 170);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setBorder(null);
         add(scrollPane);
@@ -84,13 +90,13 @@ public class JanelaEmprestimo extends JFrame {
         renovarBtn = new JButton("Renovar Empréstimo");
         renovarBtn.setBounds(80, 350, 170, 30);
         renovarBtn.setForeground(new Color(0, 0, 0));
-        renovarBtn.setVisible(false);
+        renovarBtn.setVisible(true);
         add(renovarBtn);
 
         cancelarBtn = new JButton("Cancelar Empréstimo");
         cancelarBtn.setBounds(280, 350, 170, 30);
         cancelarBtn.setForeground(new Color(0, 0, 0));
-        cancelarBtn.setVisible(false);
+        cancelarBtn.setVisible(true);
         add(cancelarBtn);
 
         verificarBtn.addActionListener(e -> {
@@ -102,7 +108,7 @@ public class JanelaEmprestimo extends JFrame {
             }
             Livro livroEncontrado = Livro.buscarLivroNoCatalogo(entrada);
             if (livroEncontrado == null) {
-                statusLabel.setText("Status: Livro não encontrado ou formato inválido. Use: Título, Autor.12345");
+                statusLabel.setText("Status: Livro não encontrado ou formato inválido. Use: Título, Autor.LIVxxx");
                 livroDisponivel = false;
             } else if (livroEncontrado.isDisponivel()) {
                 statusLabel.setText("Status: Livro \"" + livroEncontrado.getTitulo() + "\" disponível para empréstimo.");
@@ -113,9 +119,23 @@ public class JanelaEmprestimo extends JFrame {
             }
         });
 
+        verStatusBtn.addActionListener(e -> {
+            aluno = Aluno.buscarPorUsuario(usuario);
+            if (aluno != null) {
+                List<Emprestimo> emprestimosDoAluno = Emprestimo.carregarEmprestimosDoAluno(aluno);
+                aluno.getEmprestimos().clear();
+                aluno.getEmprestimos().addAll(emprestimosDoAluno);
+                atualizarStatusAluno();
+            }
+        });
+
+        aluno = Aluno.buscarPorUsuario(usuario);
+        List<Emprestimo> emprestimosDoAluno = Emprestimo.carregarEmprestimosDoAluno(aluno);
+        emprestimosAtuais.addAll(emprestimosDoAluno);
+
         solicitarBtn.addActionListener(e -> {
             if (!livroDisponivel) {
-                JOptionPane.showMessageDialog(null, "Você deve verificar o livro antes de solicitar o empréstimo.");
+                JOptionPane.showMessageDialog(null, "O livro já está emprestado. Verifique a disponibilidade antes de solicitar.");
                 return;
             }
 
@@ -124,8 +144,6 @@ public class JanelaEmprestimo extends JFrame {
                 statusLabel.setText("Status: Livro não encontrado.");
                 return;
             }
-
-            aluno = Aluno.buscarPorUsuario(usuario);
 
             if (aluno == null) {
                 JOptionPane.showMessageDialog(null, "Aluno não encontrado.");
@@ -150,8 +168,6 @@ public class JanelaEmprestimo extends JFrame {
                 nomeAlunoAtual = aluno.getNome();
                 emprestimosAtuais.add(emprestimo);
                 atualizarStatusAluno();
-                renovarBtn.setVisible(true);
-                cancelarBtn.setVisible(true);
                 statusLabel.setText("Status: Empréstimo registrado com sucesso.");
             } else {
                 statusLabel.setText("Status: Falha ao registrar empréstimo.");
@@ -168,33 +184,38 @@ public class JanelaEmprestimo extends JFrame {
                     .map(emp -> emp.getLivro().getTitulo())
                     .toArray();
 
-            String tituloEscolhido = (String) JOptionPane.showInputDialog(
-                    null,
-                    "Selecione o livro que deseja renovar:",
-                    "Renovar Empréstimo",
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    opcoes,
-                    opcoes[0]
-            );
+            String tituloEscolhido = (String)
+                    JOptionPane.showInputDialog(
+                            null,
+                            "Selecione o livro que deseja renovar:",
+                            "Renovar Empréstimo",
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            opcoes,
+                            opcoes[0]
+                    );
 
             if (tituloEscolhido != null) {
                 Emprestimo escolhido = emprestimosAtuais.stream()
-                        .filter(emp -> emp.getLivro().getTitulo().equals(tituloEscolhido))
+                        .filter(emp ->
+                                emp.getLivro().getTitulo().equals(tituloEscolhido))
                         .findFirst()
                         .orElse(null);
 
                 if (escolhido != null) {
-                    boolean sucesso = escolhido.renovarEmprestimo();
+                    boolean sucesso =
+                            escolhido.renovarEmprestimo();
 
                     if (sucesso) {
                         atualizarStatusAluno();
-                        JOptionPane.showMessageDialog(null, "Renovado com sucesso.");
+                        JOptionPane.showMessageDialog(null,
+                                "Renovado com sucesso.");
                     } else {
                         JOptionPane.showMessageDialog(null, "Não foi possível renovar o empréstimo.");
                     }
                 }
             }
+            atualizarStatusAluno();
         });
 
         cancelarBtn.addActionListener(e -> {
@@ -207,34 +228,40 @@ public class JanelaEmprestimo extends JFrame {
                     .map(emp -> emp.getLivro().getTitulo())
                     .toArray();
 
-            String tituloEscolhido = (String) JOptionPane.showInputDialog(
-                    null,
-                    "Selecione o empréstimo (livro) para cancelar:",
-                    "Cancelar Empréstimo",
+            String tituloEscolhido = (String)
+                    JOptionPane.showInputDialog(
+                            null,
+                            "Selecione o empréstimo (livro) para cancelar:",
+                            "Cancelar Empréstimo",
                     JOptionPane.QUESTION_MESSAGE,
                     null,
                     opcoes,
                     opcoes[0]
-            );
+           );
 
             if (tituloEscolhido != null) {
                 Emprestimo escolhido = emprestimosAtuais.stream()
-                        .filter(emp -> emp.getLivro().getTitulo().equals(tituloEscolhido))
+                        .filter(emp ->
+                                emp.getLivro().getTitulo().equals(tituloEscolhido))
                         .findFirst()
                         .orElse(null);
 
                 if (escolhido != null) {
-                    boolean sucesso = escolhido.cancelarEmprestimo();
+                    boolean sucesso =
+                            escolhido.cancelarEmprestimo();
 
                     if (sucesso) {
                         emprestimosAtuais.remove(escolhido);
+
+                        JOptionPane.showMessageDialog(null,
+                                "Cancelado com sucesso.");
                         atualizarStatusAluno();
-                        JOptionPane.showMessageDialog(null, "Cancelado com sucesso.");
                     } else {
                         JOptionPane.showMessageDialog(null, "Não foi possível cancelar o empréstimo.");
                     }
                 }
             }
+            atualizarStatusAluno();
         });
 
         aluno = Aluno.buscarPorUsuario(usuario);
